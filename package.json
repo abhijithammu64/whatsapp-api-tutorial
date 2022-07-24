@@ -29,6 +29,6 @@
     "nodemon": "^2.0.7"
   }
   "scripts": {
-    "postinstall": "app.js",
+    "start": "app.js",
 },
 }
