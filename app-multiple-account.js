@@ -7,12 +7,12 @@ const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const fileUpload = require('express-fileupload');
 const axios = require('axios');
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 3000;
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-
+require('events').EventEmitter.defaultMaxListeners = 15;
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true
@@ -222,6 +222,30 @@ app.post('/send-message', async (req, res) => {
   }
 
   client.sendMessage(number, message).then(response => {
+    res.status(200).json({
+      status: true,
+      response: response
+    });
+  }).catch(err => {
+    res.status(500).json({
+      status: false,
+      response: err
+    });
+  });
+});
+// Send media
+app.post('/send-media', (req, res) => {
+
+
+  const number = phoneNumberFormatter(req.body.number);
+  const sender = req.body.sender;
+  const caption = req.body.caption;
+  const file = req.files.file;
+  const media = new MessageMedia(file.mimetype, file.data.toString('base64'), file.name);
+
+  const client = sessions.find(sess => sess.id == sender)?.client;
+
+  client.sendMessage(number, media, {caption: caption}).then(response => {
     res.status(200).json({
       status: true,
       response: response
